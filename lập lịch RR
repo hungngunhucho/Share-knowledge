@@ -1,0 +1,180 @@
+#include <iostream
+#include <queue>
+#include <iomanip>
+#include <windows.h>
+using namespace std;
+#define MAX 50
+int n, quantum;
+int total = 0;
+struct Process
+{
+    int index;
+    int Txh;
+    int Tth;
+    int wait_time;
+    int process_time;
+    int t;
+};
+Process x[MAX];
+// Nhap xuat day tien trinh
+// Va hien thi lai theo thoi diem xuat hien
+void input(Process &x)
+{
+    cout << "Nhap CPU burst time : ";   cin >> x.Tth;
+    cout << "Nhap CPU arrival time : ";   cin >> x.Txh;
+
+}
+void output(Process x)
+{
+    cout << setw(2) << x.index;
+    cout << setw(15) << x.Tth;
+    cout << setw(15) << x.Txh <<endl;
+
+}
+void nhapdaytientrinh()
+
+{
+    cout << "Nhap time quantum : ";   cin >> quantum;
+    cout << "\nNhap so luong tien trinh : ";  cin >> n;
+    for(int i = 0; i < n ; i++)
+    {
+        x[i].index = i+1;
+        cout <<"\nNhap tien trinh :" << x[i].index <<endl;
+               input(x[i]);
+
+        total += x[i].Tth;
+        x[i].t = x[i].Tth + x[i].Txh;
+    }
+}
+void hienthidaytientrinh()
+{
+    cout << "\nTime Quantum : q = " << quantum;
+    cout << setw(10) << "\nProcess";
+    cout << setw(15) << "T_thuc_hien";
+    cout << setw(15) << "T_xuat_hien" <<endl;
+    for(int i  = 0 ; i < n ; i++ )
+    {
+        output(x[i]);
+    }
+}
+void sapxepdaytientrinh()
+{
+    for(int i= 0 ; i < n; i++)
+    {
+        for(int j = n- 1; j > i; j--)
+        {
+            if(x[j].Txh < x[j-1].Txh)
+            {
+                Process tmp = x[j];
+                        x[j]  = x[j-1];
+                        x[j-1]= tmp;
+            }
+        }
+    }
+    hienthidaytientrinh();
+}
+// Giai quyet bai toan
+
+queue<Process> ds;   //Xy ly trong qua  trinh ve gian do
+queue<Process> pt;   // luu thoi gian xu ly cua tung tien trinh
+queue<Process> wt;   //Luu thoi gian doi cua tung tien trinh
+// Ve gian do Gantt
+void vegiandoGantt()
+{
+    int bd = 0, kt = 0;
+    int k = 0;
+    int q = quantum;
+    while(quantum <= total)
+    {
+          for(int i = k ; i < n; i++)
+          {
+              if(x[i].Txh <= quantum)
+              {
+                  ds.push(x[i]);
+                  k++;
+              }
+              else
+                  break;
+          }
+
+          Process X = ds.front();
+          ds.pop();
+          if(X.Tth <= q)
+          {
+              quantum += X.Tth;
+              kt += X.Tth;
+              X.Tth = X.Tth - X.Tth;
+              cout << "|" << bd << " P" << X.index<<" " << kt <<"|"<<endl;
+              bd = kt;
+
+              X.process_time = kt - X.Txh;
+              X.wait_time = kt - X.t;
+              pt.push(X);
+              wt.push(X);
+
+
+          }
+          else
+          {
+              quantum += q;
+              X.Tth = X.Tth - q;
+              kt += q;
+              cout << "|" << bd << " P" << X.index<< " " << kt <<"|"<<endl;
+              bd = kt;
+              if(X.Tth != 0)
+                ds.push(X);
+          }
+    }
+}
+void tinhThoiGianXuLyTB()
+{
+    float sum = 0;
+    for(int i = 0; i < n ; i++)
+    {
+        Process X = pt.front();
+        cout << "\nThoi gian xu ly cua P"<<X.index<<" : "<<X.process_time;
+        sum +=X.process_time;
+        pt.pop();
+
+    }
+    cout << "\nThoi gian xu ly trung binh cua he tien trinh la : " << sum/n;
+}
+void tinhThoiGianChoTrungBinh()
+{
+    float sum = 0;
+    for(int i = 0; i < n ; i++)
+    {
+        Process X = wt.front();
+        cout << "\nThoi gian cho cua P"<<X.index<<" : "<<X.wait_time;
+        sum +=X.wait_time;
+        wt.pop();
+
+    }
+    cout << "\nThoi gian xu ly trung binh cua he tien trinh la : " << sum/n;
+
+}
+
+int main()
+{
+    nhapdaytientrinh();
+    system("cls");
+
+    cout << "\n----------------------------LAP LICH CPU VOI THUAT TOAN RR-----------------------------";
+    hienthidaytientrinh();
+    cout <<"\n----------------------------DAY TIEN TRINH SAU KHI DA SAP XEP---------------------------------------";
+    sapxepdaytientrinh();
+    cout << "\n--------------------------------VE GIAN DO GANTT--------------------------------- " <<endl;
+    vegiandoGantt();
+    cout << "\n-------------------------TINH THOI GIAN XU LY TRUNG BINH---------------------------- " << endl;
+    tinhThoiGianXuLyTB();
+    cout << "\n------------------------TINH THOI GIAN CHO TRUNG BINH-----------------------------" << endl;
+    tinhThoiGianChoTrungBinh();
+    cout <<"\n-------------------------------------------------------------------------------------"<<endl;
+    return 0 ;
+}
+
+
+
+
+
+
